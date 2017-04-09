@@ -20,7 +20,7 @@ export default class App extends Component {
 		}
 
 		const headers = new Headers();
-		headers.append('X-API-KEY', '441713dac45343f29bdaf39dbe38a97d');
+		headers.append('X-API-KEY', XAPIKEY);
 
 		this.api = {
 			config: { method: 'GET', headers },
