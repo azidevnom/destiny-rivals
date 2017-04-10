@@ -21,16 +21,22 @@
     "compat/compat": 2,
     "consistent-return": "off",
     "comma-dangle": "off",
+    "no-console": "off",
+    "no-alert": "off",
+    "max-len": "off",
     "generator-star-spacing": "off",
+    "no-underscore-dangle": "off",
     "import/no-unresolved": ["error", { "ignore": ["electron"] }],
     "import/no-extraneous-dependencies": "off",
     "no-use-before-define": "off",
     "promise/param-names": 2,
-    "promise/always-return": 2,
-    "promise/catch-or-return": 2,
+    "promise/always-return": "off",
+    "promise/catch-or-return": "off",
     "promise/no-native": 0,
     "react/jsx-no-bind": "off",
     "react/jsx-filename-extension": ["error", { "extensions": [".js", ".jsx"] }],
-    "react/prefer-stateless-function": "off"
+    "react/prefer-stateless-function": "off",
+    "react/forbid-prop-types": "off",
+    "react/no-did-mount-set-state": "off"
   }
 }

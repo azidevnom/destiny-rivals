@@ -1,6 +1,7 @@
 # Destiny Rivals
 
 A pvp oriented tool to rank your fireteam.
+Made with React.
 
 ### To develop
 
