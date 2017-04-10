@@ -3,6 +3,8 @@
 A pvp oriented tool to rank your fireteam.
 Made with React.
 
+Try it: https://taurus.simtastic.cl/destiny-rivals/
+
 ### To develop
 
 ```
