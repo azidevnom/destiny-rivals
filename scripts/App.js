@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import Api from './components/Api';
+import State from './components/State';
 import SearchPanel from './components/SearchPanel';
 import GuardiansPanel from './components/GuardiansPanel';
 import Results from './components/Results';
@@ -7,28 +9,7 @@ export default class App extends Component {
 
   constructor() {
     super();
-
-    this.state = {
-      searchBoxValue: '',
-      comboValue: 'weaponKillsSuper',
-      comboData: [],
-      enableResults: false,
-      guardians: [],
-      guardiansData: {},
-      chartData: []
-    };
-
-    const headers = new Headers();
-    headers.append('X-API-KEY', XAPIKEY); // eslint-disable-line
-
-    this.api = {
-      config: { method: 'GET', headers },
-      resources: {
-        search(platform, name) { return `https://www.bungie.net/Platform/Destiny/SearchDestinyPlayer/${platform}/${name}/`; },
-        summary(platform, membershipId) { return `https://www.bungie.net/Platform/Destiny/${platform}/Account/${membershipId}/Summary/`; },
-        stats(platform, membershipId) { return `https://www.bungie.net/Platform/Destiny/Stats/Account/${platform}/${membershipId}/`; },
-      }
-    };
+    this.state = State;
   }
 
   _addNewGuardian(data) {
@@ -36,14 +17,14 @@ export default class App extends Component {
     if (data.trim().length > 0) {
       if (this.state.guardians
       .filter(item => (item.displayName.toLowerCase() === data.toLowerCase())).length === 0) {
-        fetch(new Request(this.api.resources.search(2, data), this.api.config)).then(r => r.json())
+        fetch(new Request(Api.resources.search(2, data), Api.config)).then(r => r.json())
         .then(json => {
           if (json.ErrorCode === 1 && json.Response.length > 0) {
             const g = json.Response[0];
             this.setState({
               guardians: [...this.state.guardians, g]
             }, () => {
-              fetch(new Request(this.api.resources.stats(2, g.membershipId), this.api.config)).then(r => r.json())
+              fetch(new Request(Api.resources.stats(2, g.membershipId), Api.config)).then(r => r.json())
               .then(j => {
                 console.log(g.displayName);
                 this.setState({
@@ -75,7 +56,7 @@ export default class App extends Component {
   _bringStats() {
     console.log('getting stats');
     Promise.all(this.state.guardians.map(g => { // eslint-disable-line
-      return fetch(new Request(this.api.resources.stats(2, g.membershipId), this.api.config)).then(r => r.json())
+      return fetch(new Request(Api.resources.stats(2, g.membershipId), Api.config)).then(r => r.json())
       .then(json => {
         this.setState({ guardiansData: { ...this.state.guardiansData, [g.displayName]: json.Response.mergedAllCharacters.results.allPvP.allTime } });
       });
