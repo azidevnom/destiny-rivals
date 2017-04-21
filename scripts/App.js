@@ -35,7 +35,7 @@ export default class App extends Component {
       this.setState({
         guardians: [...this.state.guardians, guardian]
       }, () => {
-        const statsRequest = new Request(Api.resources.stats(2, guardian.membershipId), Api.config);
+        const statsRequest = new Request(Api.resources.stats(guardian.membershipType, guardian.membershipId), Api.config);
 
         fetch(statsRequest).then(r => r.json()).then(stats => {
           this.setState({
