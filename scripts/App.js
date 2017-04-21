@@ -12,68 +12,61 @@ export default class App extends Component {
     this.state = State;
   }
 
-  _addNewGuardian(data) {
+  addNewGuardian(data) {
     this.setState({ searchBoxValue: '' });
-    if (data.trim().length > 0) {
-      if (this.state.guardians
-      .filter(item => (item.displayName.toLowerCase() === data.toLowerCase())).length === 0) {
-        fetch(new Request(Api.resources.search(2, data), Api.config)).then(r => r.json())
-        .then(json => {
-          if (json.ErrorCode === 1 && json.Response.length > 0) {
-            const g = json.Response[0];
-            this.setState({
-              guardians: [...this.state.guardians, g]
-            }, () => {
-              fetch(new Request(Api.resources.stats(2, g.membershipId), Api.config)).then(r => r.json())
-              .then(j => {
-                console.log(g.displayName);
-                this.setState({
-                  guardiansData: {
-                    ...this.state.guardiansData,
-                    [g.displayName]: j.Response.mergedAllCharacters.results.allPvP.allTime
-                  },
-                  enableResults: true
-                }, () => {
-                  if (Object.keys(this.state.guardiansData).length === 1) {
-                    const firstGuardian = Object.keys(this.state.guardiansData)[0];
-                    this.setState({ comboData: Object.keys(this.state.guardiansData[firstGuardian]) });
-                  }
-                  console.log('try');
-                  this._generateChart();
-                });
-              });
-            });
-          } else {
-            alert('Guardian not found');
-          }
-        });
-      } else {
-        alert(`Guardian ${data} is already registered.`);
-      }
-    }
-  }
 
-  _bringStats() {
-    console.log('getting stats');
-    Promise.all(this.state.guardians.map(g => { // eslint-disable-line
-      return fetch(new Request(Api.resources.stats(2, g.membershipId), Api.config)).then(r => r.json())
-      .then(json => {
-        this.setState({ guardiansData: { ...this.state.guardiansData, [g.displayName]: json.Response.mergedAllCharacters.results.allPvP.allTime } });
+    const isTextEmpty = (data.trim().length === 0);
+    const isGuardianAlreadyRegistered = (
+      this.state.guardians.filter(item => item.displayName.toLowerCase() === data.toLowerCase()).length > 0
+    );
+
+    if (isTextEmpty) return null;
+    if (isGuardianAlreadyRegistered) return alert(`Guardian ${data} is already registered.`);
+
+    const searchRequest = new Request(Api.resources.search(2, data), Api.config);
+
+    fetch(searchRequest).then(r => r.json()).then(json => {
+      const responseHasContent = (json.Response.length > 0);
+      const responseHasGuardian = (json.ErrorCode === 1);
+
+      if (!(responseHasGuardian && responseHasContent)) return alert('Guardian not found');
+
+      const guardian = json.Response[0];
+      this.setState({
+        guardians: [...this.state.guardians, guardian]
+      }, () => {
+        const statsRequest = new Request(Api.resources.stats(2, guardian.membershipId), Api.config);
+
+        fetch(statsRequest).then(r => r.json()).then(stats => {
+          this.setState({
+            guardiansData: {
+              ...this.state.guardiansData,
+              [guardian.displayName]: stats.Response.mergedAllCharacters.results.allPvP.allTime
+            },
+            enableResults: true
+          }, () => {
+            const isComboDataNeeded = (Object.keys(this.state.guardiansData).length === 1);
+
+            if (isComboDataNeeded) {
+              const firstGuardian = Object.keys(this.state.guardiansData)[0];
+              const comboKeys = Object.keys(this.state.guardiansData[firstGuardian]);
+              this.setState({ comboData: comboKeys });
+            }
+
+            this.generateChart();
+          });
+        });
       });
-    })).then(() => {
-      console.log('completed');
-      this.setState({ enableResults: true });
     });
   }
 
-  _generateChart() {
-    console.log('generating chart');
-    let dataArray = Object.keys(this.state.guardiansData).map(g => { // eslint-disable-line
-      return {
+  generateChart() {
+    let dataArray = Object.keys(this.state.guardiansData).map(g => (
+      {
         name: g,
         value: this.state.guardiansData[g][this.state.comboValue].basic.value
-      };
-    });
+      }
+    ));
     dataArray = dataArray.sort((a, b) => b.value - a.value);
     this.setState({ chartData: dataArray });
   }
@@ -86,17 +79,13 @@ export default class App extends Component {
 
     const guardians = {
       get: this.state.guardians,
-      add: (g) => { this._addNewGuardian(g); }
-    };
-
-    const stats = {
-      run: () => { this._bringStats(); }
+      add: (g) => { this.addNewGuardian(g); }
     };
 
     const combo = {
       get: this.state.comboValue,
       set: (v) => {
-        this.setState({ comboValue: v }, () => this._generateChart());
+        this.setState({ comboValue: v }, () => this.generateChart());
       }
     };
 
@@ -105,11 +94,17 @@ export default class App extends Component {
     };
 
     const charting = {
-      generate: () => { this._generateChart(); },
+      generate: () => { this.generateChart(); },
       data: this.state.chartData
     };
 
-    const results = (this.state.enableResults) ? <Results comboData={comboData} combo={combo} charting={charting} /> : '';
+    const results = (this.state.enableResults) ? (
+      <Results
+        comboData={comboData}
+        combo={combo}
+        charting={charting}
+      />
+     ) : '';
 
     return (
       <div className="container">
@@ -124,7 +119,6 @@ export default class App extends Component {
             <SearchPanel
               searchBoxValue={searchBoxValue}
               guardians={guardians}
-              stats={stats}
             />
           </div>
         </div>
