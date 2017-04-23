@@ -12,24 +12,24 @@ export default class App extends Component {
     this.state = State;
   }
 
-  addNewGuardian(data) {
+  addNewGuardian(data, platform) {
     this.setState({ searchBoxValue: '' });
 
     const isTextEmpty = (data.trim().length === 0);
-    const isGuardianAlreadyRegistered = (
-      this.state.guardians.filter(item => item.displayName.toLowerCase() === data.toLowerCase()).length > 0
-    );
+    const isGuardianAlreadyRegistered = this.state.guardians.filter(item => (
+      ((item.displayName.toLowerCase() === data.toLowerCase()) && (item.membershipType.toString() === platform))
+    )).length > 0;
 
     if (isTextEmpty) return null;
     if (isGuardianAlreadyRegistered) return alert(`Guardian ${data} is already registered.`);
 
-    const searchRequest = new Request(Api.resources.search(2, data), Api.config);
+    const searchRequest = new Request(Api.resources.search(platform, data), Api.config);
 
     fetch(searchRequest).then(r => r.json()).then(json => {
       const responseHasContent = (json.Response.length > 0);
       const responseHasGuardian = (json.ErrorCode === 1);
 
-      if (!(responseHasGuardian && responseHasContent)) return alert('Guardian not found');
+      if (!(responseHasGuardian && responseHasContent)) return alert(`Guardian not found ${data} ${platform}`);
 
       const guardian = json.Response[0];
       this.setState({
@@ -50,6 +50,13 @@ export default class App extends Component {
             if (isComboDataNeeded) {
               const firstGuardian = Object.keys(this.state.guardiansData)[0];
               const comboKeys = Object.keys(this.state.guardiansData[firstGuardian]);
+
+              // removing unused entries
+              comboKeys.splice(comboKeys.indexOf('weaponBestType'), 1);
+              comboKeys.splice(comboKeys.indexOf('weaponKillsSubmachinegun'), 1);
+              comboKeys.splice(comboKeys.indexOf('averageDeathDistance'), 1);
+              comboKeys.splice(comboKeys.indexOf('totalDeathDistance'), 1);
+
               this.setState({ comboData: comboKeys });
             }
 
@@ -79,7 +86,7 @@ export default class App extends Component {
 
     const guardians = {
       get: this.state.guardians,
-      add: (g) => { this.addNewGuardian(g); }
+      add: (data, platform = this.state.platformSelected) => { this.addNewGuardian(data, platform); }
     };
 
     const combo = {
@@ -96,6 +103,13 @@ export default class App extends Component {
     const charting = {
       generate: () => { this.generateChart(); },
       data: this.state.chartData
+    };
+
+    const platform = {
+      get: this.state.platformSelected,
+      set: (v) => {
+        this.setState({ platformSelected: v });
+      }
     };
 
     const results = (this.state.enableResults) ? (
@@ -119,6 +133,7 @@ export default class App extends Component {
             <SearchPanel
               searchBoxValue={searchBoxValue}
               guardians={guardians}
+              platform={platform}
             />
           </div>
         </div>

@@ -13,17 +13,43 @@ export default class SearchPanel extends Component {
   _loadData() {
     console.log('loading');
     const guardians = localStorage.guardians.split(',');
-    guardians.forEach((g) => this.props.guardians.add(g));
+    guardians.forEach((g) => {
+      const guardian = g.split(':')[0];
+      const platform = g.split(':')[1].toString();
+      this.props.guardians.add(guardian, platform);
+    });
   }
 
   _saveData() {
     console.log(this.props.guardians.get.map((g) => g.displayName).join(','));
-    localStorage.guardians = this.props.guardians.get.map((g) => g.displayName).join(',');
+    localStorage.guardians = this.props.guardians.get.map((g) => `${g.displayName}:${g.membershipType}`).join(',');
   }
 
   render() {
     return (
       <div className="input-group">
+        <div className="input-group-btn" data-toggle="buttons">
+          <label className={`btn btn-default ${this.props.platform.get === '1' ? 'active' : ''}`} htmlFor="xbox">
+            <input
+              type="radio"
+              name="platform"
+              id="xbox"
+              value="1"
+              onClick={(evt) => this.props.platform.set(evt.target.value)}
+            />
+            <img style={{ height: '20px' }} src="xbl.png" alt="xbox" />
+          </label>
+          <label className={`btn btn-default ${this.props.platform.get === '2' ? 'active' : ''}`} htmlFor="psn">
+            <input
+              type="radio"
+              name="platform"
+              id="psn"
+              value="2"
+              onClick={(evt) => this.props.platform.set(evt.target.value)}
+            />
+            <img style={{ height: '20px' }} src="psn.png" alt="psn" />
+          </label>
+        </div>
         <SearchBox
           searchBoxValue={this.props.searchBoxValue}
           keyPress={this._keyPress.bind(this)}
@@ -33,19 +59,19 @@ export default class SearchPanel extends Component {
             className="btn btn-primary"
             onClick={() => this._keyPress({ key: 'Enter' })}
           >
-            Search
+            <span style={{ height: '18px', marginTop: '2px' }} className="glyphicon glyphicon-search" aria-hidden="true" />
           </button>
           <button
             className="btn btn-default"
             onClick={() => this._saveData()}
           >
-            Save
+            <span style={{ height: '18px', marginTop: '2px' }} className="glyphicon glyphicon-floppy-open" aria-hidden="true" />
           </button>
           <button
             className="btn btn-default"
             onClick={() => this._loadData()}
           >
-            Load
+            <span style={{ height: '18px', marginTop: '2px' }} className="glyphicon glyphicon-save-file" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -55,6 +81,7 @@ export default class SearchPanel extends Component {
 
 SearchPanel.propTypes = {
   searchBoxValue: PropTypes.object,
-  guardians: PropTypes.object
+  guardians: PropTypes.object,
+  platform: PropTypes.object
 };
 
