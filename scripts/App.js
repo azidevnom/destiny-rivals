@@ -49,7 +49,8 @@ export default class App extends Component {
 
             if (isComboDataNeeded) {
               const firstGuardian = Object.keys(this.state.guardiansData)[0];
-              const comboKeys = Object.keys(this.state.guardiansData[firstGuardian]);
+              const comboKeys = Object.keys(this.state.guardiansData[firstGuardian])
+              .sort((a, b) => (a > b ? 1 : -1));
 
               // removing unused entries
               comboKeys.splice(comboKeys.indexOf('weaponBestType'), 1);
