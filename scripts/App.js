@@ -113,6 +113,19 @@ export default class App extends Component {
       }
     };
 
+    const appDescription = (
+      <div className="panel panel-default">
+        <div className="panel-body">
+          <p>
+            This tool is open-source and you can check it, fork it or star it on github right <a href="https://github.com/azidevnom/destiny-rivals/">here</a>.
+          </p>
+          <p>
+            You can also follow me on twitter as <a href="https://twitter.com/azidevnom">@azidevnom</a>.
+          </p>
+        </div>
+      </div>
+    );
+
     const results = (this.state.enableResults) ? (
       <Results
         comboData={comboData}
@@ -120,6 +133,7 @@ export default class App extends Component {
         charting={charting}
       />
      ) : '';
+
 
     return (
       <div className="container">
@@ -143,6 +157,8 @@ export default class App extends Component {
         />
 
         {results}
+        {appDescription}
+
       </div>
     );
   }

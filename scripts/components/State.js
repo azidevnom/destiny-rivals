@@ -1,7 +1,7 @@
 export default {
   platformSelected: '2',
   searchBoxValue: '',
-  comboValue: 'weaponKillsSuper',
+  comboValue: 'abilityKills',
   comboData: [],
   enableResults: false,
   guardians: [],

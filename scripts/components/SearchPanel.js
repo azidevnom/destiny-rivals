@@ -10,21 +10,6 @@ export default class SearchPanel extends Component {
     }
   }
 
-  _loadData() {
-    console.log('loading');
-    const guardians = localStorage.guardians.split(',');
-    guardians.forEach((g) => {
-      const guardian = g.split(':')[0];
-      const platform = g.split(':')[1].toString();
-      this.props.guardians.add(guardian, platform);
-    });
-  }
-
-  _saveData() {
-    console.log(this.props.guardians.get.map((g) => g.displayName).join(','));
-    localStorage.guardians = this.props.guardians.get.map((g) => `${g.displayName}:${g.membershipType}`).join(',');
-  }
-
   render() {
     return (
       <div className="input-group">
@@ -59,19 +44,11 @@ export default class SearchPanel extends Component {
             className="btn btn-primary"
             onClick={() => this._keyPress({ key: 'Enter' })}
           >
-            <span style={{ height: '18px', marginTop: '2px' }} className="glyphicon glyphicon-search" aria-hidden="true" />
-          </button>
-          <button
-            className="btn btn-default"
-            onClick={() => this._saveData()}
-          >
-            <span style={{ height: '18px', marginTop: '2px' }} className="glyphicon glyphicon-floppy-open" aria-hidden="true" />
-          </button>
-          <button
-            className="btn btn-default"
-            onClick={() => this._loadData()}
-          >
-            <span style={{ height: '18px', marginTop: '2px' }} className="glyphicon glyphicon-save-file" aria-hidden="true" />
+            <span
+              style={{ height: '18px' }}
+              className="glyphicon glyphicon-search"
+              aria-hidden="true"
+            /> Seach
           </button>
         </div>
       </div>
