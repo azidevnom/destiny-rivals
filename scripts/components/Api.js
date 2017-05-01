@@ -10,10 +10,3 @@ export default {
   }
 };
 
-export function setStateAsync(that, newState) {
-  return new Promise((resolve) => {
-    that.setState(newState, () => {
-      resolve();
-    });
-  });
-}

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import Api, { setStateAsync } from './components/Api';
-import State from './components/State';
+import Api from './components/Api';
+import State, { setStateAsync } from './components/State';
 import SearchPanel from './components/SearchPanel';
 import GuardiansPanel from './components/GuardiansPanel';
 import Results from './components/Results';
