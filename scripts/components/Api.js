@@ -9,3 +9,11 @@ export default {
     stats(platform, membershipId) { return `${API}/Stats/Account/${platform}/${membershipId}/`; },
   }
 };
+
+export function setStateAsync(that, newState) {
+  return new Promise((resolve) => {
+    that.setState(newState, () => {
+      resolve();
+    });
+  });
+}

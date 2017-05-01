@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Api from './components/Api';
+import Api, { setStateAsync } from './components/Api';
 import State from './components/State';
 import SearchPanel from './components/SearchPanel';
 import GuardiansPanel from './components/GuardiansPanel';
@@ -12,8 +12,8 @@ export default class App extends Component {
     this.state = State;
   }
 
-  addNewGuardian(data, platform) {
-    this.setState({ searchBoxValue: '' });
+  async addNewGuardian(data, platform) {
+    await setStateAsync(this, { searchBoxValue: '' });
 
     const isTextEmpty = (data.trim().length === 0);
     const isGuardianAlreadyRegistered = this.state.guardians.filter(item => (
@@ -25,47 +25,45 @@ export default class App extends Component {
 
     const searchRequest = new Request(Api.resources.search(platform, data), Api.config);
 
-    fetch(searchRequest).then(r => r.json()).then(json => {
-      const responseHasContent = (json.Response.length > 0);
-      const responseHasGuardian = (json.ErrorCode === 1);
+    const searchResponse = await fetch(searchRequest).then(r => r.json());
+    const responseHasContent = (searchResponse.Response.length > 0);
+    const responseHasGuardian = (searchResponse.ErrorCode === 1);
 
-      if (!(responseHasGuardian && responseHasContent)) return alert(`Guardian not found ${data} ${platform}`);
+    if (!(responseHasGuardian && responseHasContent)) return alert(`Guardian not found ${data} ${platform}`);
 
-      const guardian = json.Response[0];
-      this.setState({
-        guardians: [...this.state.guardians, guardian]
-      }, () => {
-        const statsRequest = new Request(Api.resources.stats(guardian.membershipType, guardian.membershipId), Api.config);
-
-        fetch(statsRequest).then(r => r.json()).then(stats => {
-          this.setState({
-            guardiansData: {
-              ...this.state.guardiansData,
-              [guardian.displayName]: stats.Response.mergedAllCharacters.results.allPvP.allTime
-            },
-            enableResults: true
-          }, () => {
-            const isComboDataNeeded = (Object.keys(this.state.guardiansData).length === 1);
-
-            if (isComboDataNeeded) {
-              const firstGuardian = Object.keys(this.state.guardiansData)[0];
-              const comboKeys = Object.keys(this.state.guardiansData[firstGuardian])
-              .sort((a, b) => (a > b ? 1 : -1));
-
-              // removing unused entries
-              comboKeys.splice(comboKeys.indexOf('weaponBestType'), 1);
-              comboKeys.splice(comboKeys.indexOf('weaponKillsSubmachinegun'), 1);
-              comboKeys.splice(comboKeys.indexOf('averageDeathDistance'), 1);
-              comboKeys.splice(comboKeys.indexOf('totalDeathDistance'), 1);
-
-              this.setState({ comboData: comboKeys });
-            }
-
-            this.generateChart();
-          });
-        });
-      });
+    const guardian = searchResponse.Response[0];
+    await setStateAsync(this, {
+      guardians: [...this.state.guardians, guardian]
     });
+
+    const statsRequest = new Request(Api.resources.stats(guardian.membershipType, guardian.membershipId), Api.config);
+
+    const statsResponse = await fetch(statsRequest).then(r => r.json());
+    await setStateAsync(this, {
+      guardiansData: {
+        ...this.state.guardiansData,
+        [guardian.displayName]: statsResponse.Response.mergedAllCharacters.results.allPvP.allTime
+      },
+      enableResults: true
+    });
+
+    const isComboDataNeeded = (Object.keys(this.state.guardiansData).length === 1);
+
+    if (isComboDataNeeded) {
+      const firstGuardian = Object.keys(this.state.guardiansData)[0];
+      const comboKeys = Object.keys(this.state.guardiansData[firstGuardian])
+      .sort((a, b) => (a > b ? 1 : -1));
+
+      // removing unused entries
+      comboKeys.splice(comboKeys.indexOf('weaponBestType'), 1);
+      comboKeys.splice(comboKeys.indexOf('weaponKillsSubmachinegun'), 1);
+      comboKeys.splice(comboKeys.indexOf('averageDeathDistance'), 1);
+      comboKeys.splice(comboKeys.indexOf('totalDeathDistance'), 1);
+
+      await setStateAsync(this, { comboData: comboKeys });
+    }
+
+    this.generateChart();
   }
 
   generateChart() {
