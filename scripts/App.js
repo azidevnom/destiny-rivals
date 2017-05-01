@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import Api from './components/Api';
-import State, { setStateAsync } from './components/State';
+import State from './components/State';
+import { addNewGuardian, generateChart } from './components/Core';
 import SearchPanel from './components/SearchPanel';
 import GuardiansPanel from './components/GuardiansPanel';
 import Results from './components/Results';
@@ -12,71 +12,6 @@ export default class App extends Component {
     this.state = State;
   }
 
-  async addNewGuardian(data, platform) {
-    await setStateAsync(this, { searchBoxValue: '' });
-
-    const isTextEmpty = (data.trim().length === 0);
-    const isGuardianAlreadyRegistered = this.state.guardians.filter(item => (
-      ((item.displayName.toLowerCase() === data.toLowerCase()) && (item.membershipType.toString() === platform))
-    )).length > 0;
-
-    if (isTextEmpty) return null;
-    if (isGuardianAlreadyRegistered) return alert(`Guardian ${data} is already registered.`);
-
-    const searchRequest = new Request(Api.resources.search(platform, data), Api.config);
-
-    const searchResponse = await fetch(searchRequest).then(r => r.json());
-    const responseHasContent = (searchResponse.Response.length > 0);
-    const responseHasGuardian = (searchResponse.ErrorCode === 1);
-
-    if (!(responseHasGuardian && responseHasContent)) return alert(`Guardian not found ${data} ${platform}`);
-
-    const guardian = searchResponse.Response[0];
-    await setStateAsync(this, {
-      guardians: [...this.state.guardians, guardian]
-    });
-
-    const statsRequest = new Request(Api.resources.stats(guardian.membershipType, guardian.membershipId), Api.config);
-
-    const statsResponse = await fetch(statsRequest).then(r => r.json());
-    await setStateAsync(this, {
-      guardiansData: {
-        ...this.state.guardiansData,
-        [guardian.displayName]: statsResponse.Response.mergedAllCharacters.results.allPvP.allTime
-      },
-      enableResults: true
-    });
-
-    const isComboDataNeeded = (Object.keys(this.state.guardiansData).length === 1);
-
-    if (isComboDataNeeded) {
-      const firstGuardian = Object.keys(this.state.guardiansData)[0];
-      const comboKeys = Object.keys(this.state.guardiansData[firstGuardian])
-      .sort((a, b) => (a > b ? 1 : -1));
-
-      // removing unused entries
-      comboKeys.splice(comboKeys.indexOf('weaponBestType'), 1);
-      comboKeys.splice(comboKeys.indexOf('weaponKillsSubmachinegun'), 1);
-      comboKeys.splice(comboKeys.indexOf('averageDeathDistance'), 1);
-      comboKeys.splice(comboKeys.indexOf('totalDeathDistance'), 1);
-
-      await setStateAsync(this, { comboData: comboKeys });
-    }
-
-    this.generateChart();
-  }
-
-  generateChart() {
-    let dataArray = Object.keys(this.state.guardiansData).map(g => (
-      {
-        name: g,
-        value: this.state.guardiansData[g][this.state.comboValue].basic.value
-      }
-    ));
-    dataArray = dataArray.sort((a, b) => b.value - a.value);
-    this.setState({ chartData: dataArray });
-  }
-
   render() {
     const searchBoxValue = {
       get: this.state.searchBoxValue,
@@ -85,13 +20,13 @@ export default class App extends Component {
 
     const guardians = {
       get: this.state.guardians,
-      add: (data, platform = this.state.platformSelected) => { this.addNewGuardian(data, platform); }
+      add: (data, platform = this.state.platformSelected) => { addNewGuardian(this, data, platform); }
     };
 
     const combo = {
       get: this.state.comboValue,
       set: (v) => {
-        this.setState({ comboValue: v }, () => this.generateChart());
+        this.setState({ comboValue: v }, () => generateChart(this));
       }
     };
 
@@ -100,7 +35,7 @@ export default class App extends Component {
     };
 
     const charting = {
-      generate: () => { this.generateChart(); },
+      generate: () => { generateChart(this); },
       data: this.state.chartData
     };
 
