@@ -14,6 +14,10 @@ export default class App extends Component {
 
   componentDidMount() {
     const currentURL = location.href.toString();
+    if (currentURL.includes('%7C')) {
+      location.replace(currentURL.split('%7C').join('|'));
+      return null;
+    }
     if (currentURL.includes('?rivals=')) {
       const rivals = currentURL.split('?rivals=')[1].split('|');
       rivals.forEach(rival => {
