@@ -12,6 +12,19 @@ export default class App extends Component {
     this.state = State;
   }
 
+  componentDidMount() {
+    const currentURL = location.href.toString();
+    if (currentURL.includes('?rivals=')) {
+      const rivals = currentURL.split('?rivals=')[1].split('|');
+      rivals.forEach(rival => {
+        const [guardian, platform] = rival.split(':');
+        if (guardian && platform) {
+          addNewGuardian(this, guardian, platform);
+        }
+      });
+    }
+  }
+
   render() {
     const searchBoxValue = {
       get: this.state.searchBoxValue,
